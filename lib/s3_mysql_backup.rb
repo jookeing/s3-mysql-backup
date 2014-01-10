@@ -8,10 +8,10 @@ require File.dirname(__FILE__) + '/s3utils'
 #
 class S3MysqlBackup
 
-  def initialize(db_name, path_to_config)
+  def initialize(db_name, path_to_config, db_charset)
     @db_name        = db_name
     @path_to_config = path_to_config
-
+    @db_charset     = db_charset
     self
   end
 
@@ -54,7 +54,7 @@ class S3MysqlBackup
   def dump_db
     filename  = Time.now.strftime("#{@backup_dir}/#{@db_name}.%Y%m%d.%H%M%S.sql.gz")
     mysqldump = `which mysqldump`.to_s.strip
-    `#{mysqldump} --host='#{config['dump_host']}' --user='#{config['dump_user']}' --password='#{config['dump_pass']}' '#{@db_name}' | gzip > #{filename}`
+    `#{mysqldump} --host='#{config['dump_host']}' --user='#{config['dump_user']}' --password='#{config['dump_pass']}' '#{@db_name}' --default-character-set='#{@db_charset}' | gzip > #{filename}`
     @s3utils.store(filename, config['remote_dir'])
     filename
   end
